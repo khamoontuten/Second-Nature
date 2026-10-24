@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Node
+node_modules/
+frontend/dist/
+frontend/test-results/
+frontend/playwright-report/
+
+# Runtime data (never commit generated datasets, results, reports or databases)
+data/*.db
+data/*.db-journal
+data/cache/
+data/raw/
+data/processed/
+data/reports/
+data/uploads/
+
+# Environment / secrets
+.env
+.env.local
+*.pem
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/

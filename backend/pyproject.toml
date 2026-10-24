@@ -1,0 +1,65 @@
+[project]
+name = "second-nature"
+version = "0.1.0"
+description = "Second Nature: biomimetic passive-cooling and sustainable data-center design platform (engineering decision support)"
+readme = "../README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+dependencies = [
+  "fastapi==0.162.0",
+  "uvicorn[standard]==0.54.0",
+  "pydantic==2.14.1",
+  "pydantic-settings==2.16.1",
+  "numpy==2.5.4",
+  "scipy==1.18.1",
+  "pandas==3.1.0",
+  "pyarrow==26.0.0",
+  "xarray==2026.9.0",
+  "h5netcdf==1.8.1",
+  "pvlib==0.16.1",
+  "pint==0.26.2",
+  "sqlalchemy==2.1.6",
+  "alembic==1.20.1",
+  "psycopg[binary]==3.3.6",
+  "httpx==0.28.1",
+  "python-multipart==0.0.32",
+  "openpyxl==3.1.5",
+  "reportlab==5.1.0",
+  "matplotlib==3.11.2",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest==9.1.1",
+  "pytest-cov==7.1.0",
+  "ruff==0.17.2",
+  "respx==0.23.1",
+  "psychrolib==2.5.0",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+markers = [
+  "slow: multi-year or optimisation tests (deselect with -m 'not slow')",
+  "benchmark: comparison against published or independent reference values",
+]
+filterwarnings = ["ignore::DeprecationWarning:pvlib.*"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "NPY"]
+ignore = ["E501", "B008", "UP038"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B011"]

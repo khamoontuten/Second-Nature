@@ -1,0 +1,18 @@
+{
+  "description": "Reference weather files redistributed for offline demonstration and testing. Each file is an NREL TMY3 typical meteorological year in EnergyPlus EPW format, taken from the EnergyPlus source repository (weather/ directory). A TMY splices representative months from different calendar years (generally 1973-2005; per-month source years are recorded in each dataset's provenance). TMY data represent typical conditions and understate extremes; they are not a single observed year.",
+  "source_repository": "https://github.com/NREL/EnergyPlus/tree/develop/weather",
+  "raw_url_template": "https://raw.githubusercontent.com/NREL/EnergyPlus/develop/weather/{file}",
+  "dataset_citation": "Wilcox, S. and Marion, W. (2008). Users Manual for TMY3 Data Sets. NREL/TP-581-43156. National Renewable Energy Laboratory, Golden, CO.",
+  "licence": "TMY3 data were produced by NREL for the US Department of Energy and are publicly available. The EnergyPlus repository is distributed under the EnergyPlus licence (BSD-3-Clause-style). Verify terms before commercial redistribution.",
+  "checksums": "SHA256SUMS lists the SHA-256 of the uncompressed .epw files; the .epw.gz files in this directory are gzip -9 of those files.",
+  "sites": [
+    {"id": "ashburn_va", "file": "USA_VA_Sterling-Washington.Dulles.Intl.AP.724030_TMY3.epw", "label": "Ashburn / Dulles, Virginia, USA", "climate": "mixed-humid (ASHRAE 4A)", "wmo": "724030", "latitude": 38.98, "longitude": -77.47, "elevation_m": 82.0, "timezone": "America/New_York"},
+    {"id": "phoenix_az", "file": "USA_AZ_Phoenix-Sky.Harbor.Intl.AP.722780_TMY3.epw", "label": "Phoenix, Arizona, USA", "climate": "hot-dry (ASHRAE 2B)", "wmo": "722780", "latitude": 33.45, "longitude": -111.98, "elevation_m": 337.0, "timezone": "America/Phoenix"},
+    {"id": "las_vegas_nv", "file": "USA_NV_Las.Vegas-McCarran.Intl.AP.723860_TMY3.epw", "label": "Las Vegas, Nevada, USA", "climate": "hot-dry (ASHRAE 3B)", "wmo": "723860", "latitude": 36.08, "longitude": -115.15, "elevation_m": 648.0, "timezone": "America/Los_Angeles"},
+    {"id": "miami_fl", "file": "USA_FL_Miami.Intl.AP.722020_TMY3.epw", "label": "Miami, Florida, USA", "climate": "very hot-humid (ASHRAE 1A)", "wmo": "722020", "latitude": 25.82, "longitude": -80.30, "elevation_m": 11.0, "timezone": "America/New_York"},
+    {"id": "tampa_fl", "file": "USA_FL_Tampa.Intl.AP.722110_TMY3.epw", "label": "Tampa, Florida, USA", "climate": "hot-humid (ASHRAE 2A)", "wmo": "722110", "latitude": 27.97, "longitude": -82.53, "elevation_m": 6.0, "timezone": "America/New_York"},
+    {"id": "san_francisco_ca", "file": "USA_CA_San.Francisco.Intl.AP.724940_TMY3.epw", "label": "San Francisco, California, USA", "climate": "warm-marine (ASHRAE 3C)", "wmo": "724940", "latitude": 37.62, "longitude": -122.40, "elevation_m": 2.0, "timezone": "America/Los_Angeles"},
+    {"id": "chicago_il", "file": "USA_IL_Chicago-OHare.Intl.AP.725300_TMY3.epw", "label": "Chicago O'Hare, Illinois, USA", "climate": "cool-humid (ASHRAE 5A)", "wmo": "725300", "latitude": 41.98, "longitude": -87.92, "elevation_m": 201.0, "timezone": "America/Chicago"},
+    {"id": "golden_co", "file": "USA_CO_Golden-NREL.724666_TMY3.epw", "label": "Golden (NREL), Colorado, USA", "climate": "cool-dry (ASHRAE 5B)", "wmo": "724666", "latitude": 39.74, "longitude": -105.18, "elevation_m": 1829.0, "timezone": "America/Denver"}
+  ]
+}
