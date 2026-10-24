@@ -273,6 +273,26 @@ class OptimizationRun(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
 
+class ImpactStudy(Base):
+    """Strategy impact study (individual / combination / pairwise) against the project's baseline (app.impacts)."""
+
+    __tablename__ = "impact_studies"
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_id)
+    project_id: Mapped[str] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"), index=True)
+    dataset_id: Mapped[str] = mapped_column(String(32))
+    kind: Mapped[str] = mapped_column(String(20))
+    status: Mapped[str] = mapped_column(String(20), default="queued")
+    job_id: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    request: Mapped[dict] = mapped_column(JSON)
+    result: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    config_hash: Mapped[str] = mapped_column(String(64))
+    config_version_no: Mapped[int] = mapped_column(Integer)
+    dataset_sha256: Mapped[str] = mapped_column(String(64), default="")
+    model_version: Mapped[str] = mapped_column(String(32))
+    error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
 class SensitivityResult(Base):
     __tablename__ = "sensitivity_results"
     id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_id)

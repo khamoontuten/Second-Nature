@@ -136,6 +136,35 @@ def test_reproduce_from_saved_inputs(client, simulation):
     assert r["reproduced"] and r["hourly_identical"]
 
 
+def test_reproduce_run_stored_before_schema_fields_were_added(client, simulation):
+    """A run saved before the configuration gained fields still reproduces (identical hourly results), with a note;
+    a changed stored input does not."""
+    from app.database.models import ScenarioResult
+    from app.database.session import session_scope
+
+    with session_scope() as s:
+        row = s.query(ScenarioResult).filter_by(run_id=simulation, scenario_id="S0").one()
+        original = (dict(row.config), row.inputs_hash)
+        cfg = dict(row.config)
+        cfg.pop("layout")
+        cfg["economics"] = {k: v for k, v in cfg["economics"].items() if k not in ("unit_rates", "contingency_fraction", "capex_basis_note")}
+        row.config, row.inputs_hash = cfg, "hash-from-older-schema"
+    try:
+        r = client.post(f"/api/simulations/{simulation}/reproduce", params={"scenario_id": "S0"}).json()
+        assert r["hourly_identical"] and r["reproduced"] and "schema" in r["note"]
+        with session_scope() as s:
+            row = s.query(ScenarioResult).filter_by(run_id=simulation, scenario_id="S0").one()
+            cfg = dict(row.config)
+            cfg["it"] = {**cfg["it"], "average_utilisation": 0.5}
+            row.config = cfg
+        r = client.post(f"/api/simulations/{simulation}/reproduce", params={"scenario_id": "S0"}).json()
+        assert not r["reproduced"] and not r["hourly_identical"]
+    finally:
+        with session_scope() as s:
+            row = s.query(ScenarioResult).filter_by(run_id=simulation, scenario_id="S0").one()
+            row.config, row.inputs_hash = original
+
+
 def test_optimisation_and_uncertainty_jobs(client, project, simulation):
     o = client.post("/api/optimizations", json={"project_id": project["id"], "mode": "pareto", "strategies": ["stack"], "budget": 4,
                                                "variables": [{"path": "strategies.stack.chimney_height_m", "values": [10, 30]},

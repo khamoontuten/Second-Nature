@@ -139,7 +139,10 @@ def summarise(cfg, hourly: pd.DataFrame, ctx, modes, sel, sz, env_loads, eahe_re
         "monthly": monthly.reset_index(names="month").to_dict(orient="list"),
         "failure": failure,
         "sizing": {"q_design_kw": sz.q_design_w / 1e3, "units": f"{sz.n_duty} duty / {sz.n_installed} installed",
-                   "unit_capacity_kw": sz.unit_capacity_w / 1e3},
+                   "unit_capacity_kw": sz.unit_capacity_w / 1e3, "n_duty": sz.n_duty, "n_installed": sz.n_installed,
+                   "installed_capacity_kw": sz.unit_capacity_w * sz.n_installed / 1e3, "rated_cop": sz.chiller.rated_cop,
+                   "design_airflow_m3s": sz.v_fac_design_m3s,
+                   "crah_installed_airflow_m3s": sz.crah.design_flow_m3s_per_unit * sz.crah.n_units_installed},
     }
     if eahe_res is not None:
         on = h.get("eahe_flow_m3s", pd.Series(0, index=h.index)) > 0

@@ -76,8 +76,14 @@ def embodied_carbon(cfg: ProjectConfig, base: ProjectConfig | None = None) -> di
             "data_gaps": gaps, "quantities": quantities}
 
 
-def lifecycle(cfg: ProjectConfig, summary: dict, baseline_summary: dict | None, strategy_keys: list[str]) -> dict:
-    """NPV of operating savings vs baseline, capital cost (if supplied), payback and lifecycle carbon."""
+def lifecycle(cfg: ProjectConfig, summary: dict, baseline_summary: dict | None, strategy_keys: list[str],
+              base_cfg: ProjectConfig | None = None) -> dict:
+    """NPV of operating savings vs baseline, capital cost (if supplied), payback and lifecycle carbon.
+
+    When unit rates are configured, the incremental capital cost comes from the quantity take-off of the
+    simulated configurations (app.impacts.costing — the same estimate the impact studies use); otherwise only
+    per-strategy lump sums in ``economics.capex`` are used.
+    """
     ec = cfg.economics
     r, n = ec.discount_rate, ec.horizon_years
     annuity = sum(1 / (1 + r) ** t for t in range(1, n + 1))
@@ -86,13 +92,27 @@ def lifecycle(cfg: ProjectConfig, summary: dict, baseline_summary: dict | None, 
     water_cost = summary["costs"]["water"]
     annual_cost = None if elec_cost is None else (elec_cost + (water_cost or 0.0)) / years
     capex, capex_gaps, capex_items = 0.0, [], []
-    for k in strategy_keys:
-        item = ec.capex.get(k)
-        if item is None or item.value is None:
-            capex_gaps.append(k)
-        else:
-            capex += item.value
-            capex_items.append({"strategy": k, "value": item.value, "source": item.source, "note": item.note})
+    if base_cfg is not None and ec.unit_rates:
+        from app.impacts import costing, quantities
+
+        b_sum = baseline_summary or summary
+        est_b = costing.estimate(base_cfg, quantities.takeoff(base_cfg, b_sum, base_cfg), quantities.active_measures(base_cfg, base_cfg))
+        act = quantities.active_measures(cfg, base_cfg)
+        est_s = costing.estimate(cfg, quantities.takeoff(cfg, summary, base_cfg), act)
+        inc = costing.incremental(est_b, est_s)
+        capex_gaps = list(inc["missing_rates"])
+        capex = inc["delta"]["base"] if inc["complete"] else 0.0
+        capex_items = [{"strategy": ", ".join(ln["owners"]) or ln["scope"], "item": ln["label"], "value": (ln["delta_cost"] or {}).get("base"),
+                        "source": "unit rates (quantity take-off)", "note": f"Δ quantity {ln['delta_quantity']:.3g} {ln['unit']}"}
+                       for ln in inc["lines"]]
+    else:
+        for k in strategy_keys:
+            item = ec.capex.get(k)
+            if item is None or item.value is None:
+                capex_gaps.append(k)
+            else:
+                capex += item.value
+                capex_items.append({"strategy": k, "value": item.value, "source": item.source, "note": item.note})
     maint = sum((ec.maintenance_per_year[k].value or 0.0) for k in strategy_keys if k in ec.maintenance_per_year)
     out = {"currency": ec.currency, "reference_year": ec.reference_year, "discount_rate": r, "horizon_years": n,
            "annual_operating_cost": annual_cost, "capex": capex if not capex_gaps else None, "capex_items": capex_items,

@@ -13,7 +13,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from app import MODEL_VERSION, __version__
-from app.api import analysis, calculators, climate, projects, reference, simulations
+from app.api import analysis, calculators, climate, impacts, projects, reference, simulations
 from app.core.config import REPO_ROOT, get_settings
 from app.core.errors import SecondNatureError
 from app.core.logging import configure_logging
@@ -48,7 +48,7 @@ async def validation_error(_: Request, exc: RequestValidationError):
     return JSONResponse(status_code=422, content={"error": "validation_failed", "message": "request validation failed", "details": errs})
 
 
-for r in (reference.router, projects.router, climate.router, simulations.router, analysis.router, calculators.router):
+for r in (reference.router, projects.router, climate.router, simulations.router, analysis.router, calculators.router, impacts.router):
     app.include_router(r)
 
 # Serve the built frontend (single-process deployment) when present.

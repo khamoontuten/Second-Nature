@@ -65,6 +65,11 @@ def derive(cfg: ProjectConfig, patch: dict) -> ProjectConfig:
     return ProjectConfig(**merged)
 
 
+def baseline_config(cfg: ProjectConfig) -> ProjectConfig:
+    """Scenario 0 / impact-study baseline: the project configuration with every additional strategy switched off."""
+    return derive(cfg, {"strategies": copy.deepcopy(ALL_OFF)})
+
+
 def improved_patch(cfg: ProjectConfig) -> dict:
     arch = cfg.baseline.architecture
     p: dict = {"it": {"containment": "full"}, "strategies": copy.deepcopy(ALL_OFF)}
@@ -163,7 +168,7 @@ def run_scenarios(cfg: ProjectConfig, ds: ClimateDataset, *, include=None, weigh
         label, desc = SCENARIO_META.get(sid, (sid, ""))
         return ScenarioRun(sid, label, desc, c, res, strategies, compatibility_issues(c))
 
-    base_cfg = derive(cfg, {"strategies": copy.deepcopy(ALL_OFF)})
+    base_cfg = baseline_config(cfg)
     prog(0.02, "S0 baseline")
     runs["S0"] = sim("S0", base_cfg, [])
     s0 = runs["S0"].result.summary
@@ -205,7 +210,7 @@ def run_scenarios(cfg: ProjectConfig, ds: ClimateDataset, *, include=None, weigh
     comparison = compare(runs, s0, weights)
     for sid, r in runs.items():
         comparison[sid]["lifecycle"] = lifecycle(r.config, r.result.summary, s0 if sid != "S0" else None,
-                                                 [s for s in r.strategies])
+                                                 [s for s in r.strategies], base_cfg=base_cfg)
     prog(1.0, "done")
     return {"runs": runs, "comparison": comparison, "weights": weights, "hybrid_search": search_log,
             "candidate_runs": first_step, "s1_config": s1_cfg}

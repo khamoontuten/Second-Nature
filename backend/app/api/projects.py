@@ -100,14 +100,14 @@ def validate_config(body: dict):
 
 
 @router.post("/demo", status_code=202, dependencies=[Depends(rate_limit)])
-def create_demo(site_id: str = "ashburn_va"):
+def create_demo(site_id: str = "ashburn_va", run: bool = True):
     """Create the reproducible demonstration project (real TMY3 weather, labeled assumptions) and start its simulation."""
     from app.demo import SITES
     from app.demo import create_demo as make
 
     if site_id not in SITES:
         raise ValidationFailure(f"site_id must be one of {sorted(SITES)}")
-    return make(site_id, run=True, wait=False)
+    return make(site_id, run=run, wait=False)
 
 
 @router.post("/sites/geocode", dependencies=[Depends(rate_limit)])

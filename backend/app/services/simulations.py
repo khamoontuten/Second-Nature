@@ -194,11 +194,28 @@ def reproduce(s: Session, run_id: str, scenario_id: str = "S0") -> dict:
     res = run_simulation(cfg, ds, scenario=scenario_id)
     stored = pd.read_parquet(r.hourly_path)
     same = bool(np.allclose(stored["p_facility_w"].to_numpy(), res.hourly["p_facility_w"].to_numpy(), rtol=1e-9, atol=1e-6))
-    return {"scenario_id": scenario_id, "inputs_hash_stored": r.inputs_hash, "inputs_hash_now": res.inputs_hash,
-            "model_version_stored": run.model_version, "model_version_now": MODEL_VERSION,
-            "dataset_sha256_stored": run.dataset_sha256, "dataset_sha256_now": ds.provenance.extra.get("sha256"),
-            "facility_mwh_stored": r.facility_mwh, "facility_mwh_now": res.summary["energy_mwh"]["facility"],
-            "hourly_identical": same, "reproduced": same and r.inputs_hash == res.inputs_hash}
+    hash_equal = r.inputs_hash == res.inputs_hash
+    # A configuration saved before the schema gained fields hashes differently once those fields take their
+    # defaults. That is accepted only when every stored value is unchanged and the hourly results are identical.
+    schema_only = not hash_equal and _is_subset(r.config, cfg.model_dump(mode="json"))
+    out = {"scenario_id": scenario_id, "inputs_hash_stored": r.inputs_hash, "inputs_hash_now": res.inputs_hash,
+           "model_version_stored": run.model_version, "model_version_now": MODEL_VERSION,
+           "dataset_sha256_stored": run.dataset_sha256, "dataset_sha256_now": ds.provenance.extra.get("sha256"),
+           "facility_mwh_stored": r.facility_mwh, "facility_mwh_now": res.summary["energy_mwh"]["facility"],
+           "hourly_identical": same, "reproduced": same and (hash_equal or schema_only)}
+    if schema_only:
+        out["note"] = ("inputs hash differs only because the configuration schema gained fields (at their defaults) after this run "
+                       "was stored; every stored input is unchanged and the hourly results are identical")
+    return out
+
+
+def _is_subset(stored, now) -> bool:
+    """True when every value in ``stored`` is present and equal in ``now`` (``now`` may contain additional keys)."""
+    if isinstance(stored, dict):
+        return isinstance(now, dict) and all(k in now and _is_subset(v, now[k]) for k, v in stored.items())
+    if isinstance(stored, list):
+        return isinstance(now, list) and len(stored) == len(now) and all(_is_subset(a, b) for a, b in zip(stored, now, strict=True))
+    return stored == now
 
 
 def comparison_frame(run: SimulationRun) -> pd.DataFrame:

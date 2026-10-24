@@ -328,6 +328,25 @@ class CostItem(_M):
     note: str = ""
 
 
+class UnitRate(_M):
+    """Installed unit cost of one quantity-take-off item (app.impacts.costing). Never defaulted by the platform."""
+
+    low: float | None = Field(None, ge=0)
+    base: float | None = Field(None, ge=0)
+    high: float | None = Field(None, ge=0)
+    source: Literal["quoted", "measured", "reference", "assumed", "missing"] = "missing"
+    basis_year: int | None = None
+    service_life_years: float | None = Field(None, gt=0, description="Replacement interval; None = lasts the analysis horizon")
+    note: str = ""
+
+    @model_validator(mode="after")
+    def _ordered(self):
+        vals = [v for v in (self.low, self.base, self.high) if v is not None]
+        if vals != sorted(vals):
+            raise ValueError("unit rate must satisfy low ≤ base ≤ high")
+        return self
+
+
 class EconomicsConfig(_M):
     currency: str = "USD"
     reference_year: int = 2026
@@ -338,6 +357,30 @@ class EconomicsConfig(_M):
     capex: dict[str, CostItem] = Field(default_factory=dict, description="Keyed by strategy id")
     maintenance_per_year: dict[str, CostItem] = Field(default_factory=dict)
     embodied_factors_kgco2e_per_kg: dict[str, CostItem] = Field(default_factory=dict, description="Keyed by material")
+    unit_rates: dict[str, UnitRate] = Field(default_factory=dict, description="Installed unit costs keyed by cost-item id")
+    contingency_fraction: float = Field(0.0, ge=0, le=1.0, description="Contingency applied to every CAPEX line (0 = none)")
+    capex_basis_note: str = ""
+
+
+class LayoutConfig(_M):
+    """Preliminary space-planning ratios (app.impacts.space). Planning assumptions, not architectural measurements."""
+
+    white_space_m2_per_rack: float = Field(2.6, gt=0, le=20, description="IT hall area per rack incl. aisles and clearances")
+    electrical_m2_per_kw_it: float = Field(0.25, ge=0, le=5, description="UPS, switchgear and battery rooms per kW of IT capacity")
+    crah_m2_per_m3s: float = Field(0.7, ge=0, le=10, description="CRAH/AHU gallery area per m³/s of installed airflow")
+    chiller_room_m2_per_kw: float = Field(0.03, ge=0, le=1, description="Indoor water-cooled chiller plant room per kW_th")
+    air_cooled_chiller_m2_per_kw: float = Field(0.06, ge=0, le=1, description="Outdoor air-cooled chillers incl. clearances per kW_th")
+    cooling_tower_m2_per_kw: float = Field(0.02, ge=0, le=1, description="Cooling-tower yard per kW_th rejected")
+    dry_cooler_m2_per_kw: float = Field(0.08, ge=0, le=1, description="Dry-cooler yard per kW_th rejected")
+    air_handler_m2_per_m3s: float = Field(3.0, ge=0, le=20, description="Packaged IEC / indirect-economiser units incl. service space")
+    dec_m2_per_m3s: float = Field(1.5, ge=0, le=20, description="Direct-evaporative media sections incl. service space")
+    oa_intake_m2_per_m3s: float = Field(0.4, ge=0, le=10, description="Outdoor-air intake plenum and filter bank per m³/s")
+    eahe_plant_m2_per_m3s: float = Field(0.5, ge=0, le=10, description="EAHE intake structure and fan room per m³/s")
+    tes_tank_height_m: float = Field(12.0, gt=1, le=40)
+    tes_clearance_factor: float = Field(1.5, ge=1, le=4)
+    water_treatment_m2_per_m3_day: float = Field(0.1, ge=0, le=5, description="Treatment/storage area per m³/day of peak withdrawal")
+    facade_projection_m: float = Field(0.6, ge=0, le=5, description="Depth of external shading/louvre zone")
+    range_fraction: float = Field(0.3, ge=0, le=1, description="± range applied to estimated (ratio-based) areas")
 
 
 class SimulationSettings(_M):
@@ -359,6 +402,7 @@ class ProjectConfig(_M):
     strategies: StrategiesConfig = Field(default_factory=StrategiesConfig)
     grid: GridConfig = Field(default_factory=GridConfig)
     economics: EconomicsConfig = Field(default_factory=EconomicsConfig)
+    layout: LayoutConfig = Field(default_factory=LayoutConfig)
     simulation: SimulationSettings = Field(default_factory=SimulationSettings)
     sources: dict[str, SourceTag] = Field(default_factory=dict, description="Provenance tags keyed by dotted path")
     notes: dict[str, str] = Field(default_factory=dict)

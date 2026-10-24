@@ -25,7 +25,31 @@ DEMO_NOTES = {
             "(SRVC/RFCE as applicable) or a utility-specific factor before using carbon results.",
     "economics": "ASSUMPTION: electricity 0.08 USD/kWh and water 2.0 USD/m³ placeholders; capital costs not supplied (data gap).",
     "soil": "ASSUMPTION: generic soil properties (Incropera Table A.3); no geotechnical data.",
+    "costs": "ASSUMPTION: illustrative order-of-magnitude unit rates (USD, 2026 basis, low/base/high) so the cost workflow can be "
+             "exercised. They are not market prices, vendor quotes or cost-database values; replace them with local quotes. "
+             "Maintenance costs are not supplied, so payback and NPV are reported as data gaps.",
 }
+
+ILLUSTRATIVE_NOTE = ("ILLUSTRATIVE DEMO VALUE — order-of-magnitude assumption to exercise the workflow; not a market price, quote "
+                     "or cost-database value. Replace with local quotes.")
+# id: (low, base, high, service life in years or None)
+ILLUSTRATIVE_RATES = {
+    "building_shell": (1200, 1500, 2200, None), "it_electrical_fitout": (3000, 4500, 6500, None), "mech_plant": (450, 700, 1000, None),
+    "heat_rejection": (100, 150, 250, None), "crah": (3000, 5000, 8000, None), "oa_intake": (1500, 3000, 5000, None),
+    "water_treatment": (1000, 2000, 4000, None), "supervisory_controls": (100_000, 250_000, 500_000, 15),
+    "controls_integration": (50_000, 150_000, 300_000, 15), "containment": (800, 1500, 2500, None),
+    "stack_shafts": (600, 900, 1400, None), "stack_outlet_dampers": (500, 900, 1500, None), "solar_collectors": (300, 600, 1000, None),
+    "eahe_pipe": (120, 250, 400, None), "eahe_excavation": (25, 45, 80, None), "eahe_fans": (1500, 3000, 5000, 15),
+    "envelope_insulation": (150, 250, 400, None), "envelope_mass": (450, 700, 1000, None), "cool_roof": (10, 25, 45, 15),
+    "facade_fixed": (200, 350, 600, None), "facade_kinetic": (700, 1200, 2000, 15), "tes": (25, 45, 80, None),
+    "radiative_panels": (150, 300, 600, None), "iec_units": (15_000, 25_000, 40_000, None), "dec_units": (4000, 8000, 14_000, None),
+    "indirect_economiser_hx": (12_000, 20_000, 32_000, None), "evap_precool_media": (8, 15, 30, 5),
+}
+
+
+def illustrative_unit_rates() -> dict:
+    return {k: {"low": lo, "base": b, "high": hi, "source": "assumed", "basis_year": 2026, "service_life_years": life,
+                "note": ILLUSTRATIVE_NOTE} for k, (lo, b, hi, life) in ILLUSTRATIVE_RATES.items()}
 
 SITES = {
     "ashburn_va": {"name": "Ashburn data-center campus (demo)", "country": "USA", "latitude": 38.98, "longitude": -77.47,
@@ -46,7 +70,9 @@ def demo_config(site_id: str = "ashburn_va") -> ProjectConfig:
         it={"installed_capacity_mw": 5.0, "average_utilisation": 0.65},
         grid={"emission_factor_kg_per_kwh": 0.35, "source": "ASSUMPTION placeholder — replace with eGRID subregion factor",
               "factor_type": "average", "accounting_basis": "location"},
-        economics={"electricity_price_per_kwh": 0.08, "water_price_per_m3": 2.0, "currency": "USD", "reference_year": 2026},
+        economics={"electricity_price_per_kwh": 0.08, "water_price_per_m3": 2.0, "currency": "USD", "reference_year": 2026,
+                   "unit_rates": illustrative_unit_rates(),
+                   "capex_basis_note": "Illustrative demo unit rates (assumptions, USD 2026) — not market prices."},
         notes=DEMO_NOTES,
         sources={"site.latitude": "retrieved", "site.longitude": "retrieved", "site.elevation_m": "retrieved"},
     )
