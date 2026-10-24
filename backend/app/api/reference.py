@@ -11,6 +11,7 @@ from app.core.environmental_classes import all_envelopes
 from app.core.errors import NotFound
 from app.database.models import Job
 from app.jobs import get_jobs
+from app.reporting.data import LIMITATIONS, REFERENCES
 from app.strategies.library import COMPATIBILITY, STRATEGIES
 
 router = APIRouter(prefix="/api", tags=["reference"])
@@ -44,7 +45,8 @@ def model_info():
     return {"model_version": MODEL_VERSION, "app_version": __version__,
             "modules": ["psychrometrics (ASHRAE 2017 Ch.1)", "airflow network (Newton–Raphson)", "earth-air HX (radial FD + shape factor)",
                         "envelope (implicit FD, transmission-matrix check)", "evaporative heat-and-mass balances",
-                        "chillers (Carnot-fraction / biquadratic EIR)", "hourly supervisory controller"]}
+                        "chillers (Carnot-fraction / biquadratic EIR)", "hourly supervisory controller"],
+            "limitations": LIMITATIONS, "references": REFERENCES}
 
 
 @router.get("/jobs/{job_id}")

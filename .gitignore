@@ -13,6 +13,7 @@ node_modules/
 frontend/dist/
 frontend/test-results/
 frontend/playwright-report/
+frontend/e2e/screenshots/
 
 # Runtime data (never commit generated datasets, results, reports or databases)
 data/*.db

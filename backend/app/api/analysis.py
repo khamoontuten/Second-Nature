@@ -34,6 +34,16 @@ def get_optimisation(optimization_id: str, s: Session = Depends(get_session)):
             "model_version": r.model_version, "created_at": r.created_at.isoformat()}
 
 
+@router.get("/projects/{project_id}/optimizations")
+def list_optimisations(project_id: str, s: Session = Depends(get_session)):
+    from app.database.models import OptimizationRun
+
+    rows = s.query(OptimizationRun).filter_by(project_id=project_id).order_by(OptimizationRun.created_at.desc()).all()
+    return [{"id": r.id, "status": r.status, "created_at": r.created_at.isoformat(), "job_id": r.job_id,
+             "strategies": (r.request or {}).get("strategies"), "mode": (r.request or {}).get("mode"),
+             "objective": (r.request or {}).get("objective")} for r in rows]
+
+
 @router.post("/uncertainty", status_code=202, dependencies=[Depends(rate_limit)])
 def create_sensitivity(body: SensitivityRequest, s: Session = Depends(get_session)):
     rec = svc.create_sensitivity(s, body.model_dump())
@@ -67,6 +77,15 @@ def create_report(body: ReportRequest, s: Session = Depends(get_session)):
     rep.job_id = job_id
     s.commit()
     return {"report_id": rep.id, "job_id": job_id}
+
+
+@router.get("/simulations/{simulation_id}/reports")
+def list_reports(simulation_id: str, s: Session = Depends(get_session)):
+    from app.database.models import Report
+
+    rows = s.query(Report).filter_by(simulation_id=simulation_id).order_by(Report.created_at.desc()).all()
+    return [{"id": r.id, "format": r.format, "status": r.status, "job_id": r.job_id, "sha256": r.sha256, "created_at": r.created_at.isoformat(),
+             "download_url": f"/api/reports/{r.id}/download" if r.status == "succeeded" else None} for r in rows]
 
 
 @router.get("/reports/{report_id}")

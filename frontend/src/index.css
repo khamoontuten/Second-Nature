@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Design tokens. Categorical palette validated with the dataviz validator (light + dark, adjacent pairs):
+   all hard gates pass; light slots 3/4/5 are below 3:1 contrast, relieved by the table view on every chart. */
+:root {
+  color-scheme: light;
+  --page-plane: #f9f9f7;
+  --surface-1: #fcfcfb;
+  --surface-2: #f3f2ee;
+  --text-primary: #0b0b0b;
+  --text-secondary: #52514e;
+  --text-muted: #6f6d68;
+  --gridline: #e1e0d9;
+  --baseline: #c3c2b7;
+  --series-neutral: #8f8d84; /* reference/baseline marks: ≥ 3:1 on the surface */
+  --border: rgba(11, 11, 11, 0.1);
+  --series-1: #2a78d6; --series-2: #eb6834; --series-3: #1baf7a; --series-4: #eda100;
+  --series-5: #e87ba4; --series-6: #008300; --series-7: #6250d6; --series-8: #e34948;
+  --seq-100: #cde2fb; --seq-200: #9ec5f4; --seq-300: #6da7ec; --seq-400: #3987e5; --seq-500: #256abf; --seq-600: #184f95; --seq-700: #0d366b;
+  --div-neg: #2a78d6; --div-mid: #f0efec; --div-pos: #e34948;
+  --status-good: #0ca30c; --status-warning: #fab219; --status-serious: #ec835a; --status-critical: #d03b3b;
+  --success-text: #006300;
+  --focus: #2a78d6;
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --page-plane: #0d0d0d; --surface-1: #1a1a19; --surface-2: #232321;
+    --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #9a988f;
+    --gridline: #2c2c2a; --baseline: #383835; --series-neutral: #8a8880; --border: rgba(255, 255, 255, 0.1);
+    --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70; --series-4: #c98500;
+    --series-5: #d55181; --series-6: #008300; --series-7: #9085e9; --series-8: #e66767;
+    --seq-100: #104281; --seq-200: #184f95; --seq-300: #1c5cab; --seq-400: #256abf; --seq-500: #3987e5; --seq-600: #6da7ec; --seq-700: #b7d3f6;
+    --div-neg: #3987e5; --div-mid: #383835; --div-pos: #e66767;
+    --success-text: #0ca30c;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page-plane: #0d0d0d; --surface-1: #1a1a19; --surface-2: #232321;
+  --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #9a988f;
+  --gridline: #2c2c2a; --baseline: #383835; --series-neutral: #8a8880; --border: rgba(255, 255, 255, 0.1);
+  --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70; --series-4: #c98500;
+  --series-5: #d55181; --series-6: #008300; --series-7: #9085e9; --series-8: #e66767;
+  --seq-100: #104281; --seq-200: #184f95; --seq-300: #1c5cab; --seq-400: #256abf; --seq-500: #3987e5; --seq-600: #6da7ec; --seq-700: #b7d3f6;
+  --div-neg: #3987e5; --div-mid: #383835; --div-pos: #e66767;
+  --success-text: #0ca30c;
+}
+
+html, body { background: var(--page-plane); color: var(--text-primary); }
+body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 14px; }
+.tnum { font-variant-numeric: tabular-nums; }
+.card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; }
+.input {
+  background: var(--surface-1); border: 1px solid var(--baseline); border-radius: 6px; padding: 4px 8px;
+  color: var(--text-primary); width: 100%; font-size: 13px;
+}
+.input:focus { outline: 2px solid var(--focus); outline-offset: 0; }
+.btn {
+  display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; padding: 6px 12px; font-size: 13px; font-weight: 600;
+  border: 1px solid var(--baseline); background: var(--surface-1); color: var(--text-primary);
+}
+.btn:hover { background: var(--surface-2); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-primary { background: var(--seq-600); border-color: var(--seq-600); color: #fff; }
+.btn-primary:hover { background: var(--seq-700); }
+:root[data-theme="dark"] .btn-primary { background: #256abf; border-color: #256abf; }
+.label { font-size: 12px; color: var(--text-secondary); }
+.leaflet-container { background: var(--surface-2); }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+@media (forced-colors: active) { .card { border: 1px solid CanvasText; } }
