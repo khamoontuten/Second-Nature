@@ -58,6 +58,9 @@ backend/app/
   strategies/    biomimetic strategy library (metadata A–I, compatibility matrix)
   simulation/    load profiles, scenario definitions 0–8, simulation engine, caching
   accounting/    PUE, WUE, carbon, heat rejection, lifecycle cost and embodied carbon
+  impacts/       strategy impact analysis: catalogue, metrics + status labels, quantity take-off,
+                 CAPEX/OPEX (unit rates), space estimate, individual/combination/pairwise studies,
+                 exports (docs/impact_analysis.md)
   optimization/  grid search, differential evolution, Pareto frontier
   uncertainty/   Monte Carlo, one-at-a-time tornado, rank-stability analysis
   recommendation/ transparent multi-criteria ranking + data-driven explanations
@@ -65,7 +68,7 @@ backend/app/
   database/      SQLAlchemy models, session management
   api/           FastAPI routers (OpenAPI docs at /docs)
   jobs.py        background job manager (thread pool, progress, cancellation, DB-persisted status)
-frontend/src/    React + TypeScript workbench (pages, charts, maps, forms, api, types)
+frontend/src/    React + TypeScript workbench (9 pages incl. impact analysis; charts, maps, forms, api, types)
 ```
 
 The physics package has no dependency on FastAPI, the database or the frontend. The
@@ -89,6 +92,10 @@ site + config ──► climate ingestion ──► QC + feature engineering ─
             accounting (PUE, WUE, CO2e, heat balance, cost)  ─► scenario summaries
                                       ▼
      scenario comparison ─► optimization / uncertainty ─► recommendation ─► reports
+
+     strategy selection ─► dependency/exclusion resolution ─► same engine per scenario
+                         ─► quantity take-off ─► CAPEX / OPEX / space ─► baseline-relative impacts
+                         ─► attribution + pairwise non-additivity ─► CSV / XLSX / JSON
 ```
 
 ## 5. Conventions

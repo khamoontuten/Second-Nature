@@ -1,0 +1,15 @@
+**/node_modules
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+frontend/dist
+frontend/e2e/screenshots
+data/*.db
+data/cache
+data/raw
+data/processed
+data/reports
+data/uploads
+.env
+.git

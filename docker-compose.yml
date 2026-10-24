@@ -1,0 +1,56 @@
+# PostgreSQL/PostGIS + the Second Nature app (API + built workbench on http://localhost:8000).
+#   docker compose up --build
+# Optional Vite dev server with hot reload on http://localhost:5173:
+#   docker compose --profile dev up --build
+# Secrets come from .env (see .env.example); nothing secret is stored in this file.
+
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_DB: second_nature
+      POSTGRES_USER: second_nature
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U second_nature -d second_nature"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  app:
+    build: .
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      SN_DATABASE_URL: postgresql+psycopg://second_nature:${POSTGRES_PASSWORD:-change-me}@db:5432/second_nature
+      SN_DATA_DIR: /data
+      SN_ENVIRONMENT: ${SN_ENVIRONMENT:-production}
+    volumes:
+      - appdata:/data
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend-dev:
+    profiles: ["dev"]
+    image: node:22-bookworm-slim
+    working_dir: /src/frontend
+    command: sh -c "npm ci && npm run dev -- --host 0.0.0.0"
+    environment:
+      SN_API_URL: http://app:8000
+    volumes:
+      - ./frontend:/src/frontend
+      - /src/frontend/node_modules
+    ports:
+      - "5173:5173"
+    depends_on:
+      - app
+
+volumes:
+  pgdata:
+  appdata:
