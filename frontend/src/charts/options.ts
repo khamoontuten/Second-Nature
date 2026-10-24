@@ -215,11 +215,11 @@ export function barChart(t: Tokens, o: { categories: (string | number)[]; series
   };
 }
 
-export function heatmap(t: Tokens, o: { x: (string | number)[]; y: (string | number)[]; data: [number, number, number | null][]; unit: string; xName?: string; yName?: string; min?: number; max?: number; pieces?: { value: number; label: string; color: string }[] }): EChartsOption {
+export function heatmap(t: Tokens, o: { x: (string | number)[]; y: (string | number)[]; data: [number, number, number | null][]; unit: string; xName?: string; yName?: string; min?: number; max?: number; pieces?: { value: number; label: string; color: string }[]; colors?: string[]; cellLabel?: (v: number, x: number, y: number) => string }): EChartsOption {
   const vals = o.data.map((d) => d[2]).filter((v): v is number => v !== null && Number.isFinite(v));
   return {
     ...base(t),
-    grid: { left: 52, right: 16, top: o.yName ? 28 : 12, bottom: o.pieces ? 72 : 56 },
+    grid: { left: 8, right: 16, top: o.yName ? 28 : 12, bottom: o.pieces ? 72 : 56, containLabel: true },
     tooltip: {
       ...(base(t).tooltip as object),
       trigger: "item",
@@ -235,9 +235,11 @@ export function heatmap(t: Tokens, o: { x: (string | number)[]; y: (string | num
       ? { type: "piecewise", orient: "horizontal", left: 0, bottom: 0, itemWidth: 12, itemHeight: 10, textStyle: { color: t.text2, fontSize: 11 },
           pieces: o.pieces.map((p) => ({ value: p.value, label: p.label, color: p.color })) }
       : { type: "continuous", orient: "horizontal", left: 0, bottom: 0, itemWidth: 10, itemHeight: 140, calculable: false,
-          min: o.min ?? Math.min(...vals), max: o.max ?? Math.max(...vals), inRange: { color: t.seq }, textStyle: { color: t.text2, fontSize: 11 },
+          min: o.min ?? Math.min(...vals), max: o.max ?? Math.max(...vals), inRange: { color: o.colors ?? t.seq }, textStyle: { color: t.text2, fontSize: 11 },
           text: [`${num(o.max ?? Math.max(...vals), 1)} ${o.unit}`, `${num(o.min ?? Math.min(...vals), 1)} ${o.unit}`], textGap: 6 },
-    series: [{ type: "heatmap", data: o.data as any, progressive: 4000, itemStyle: { borderColor: t.surface, borderWidth: 0.5 }, emphasis: { itemStyle: { borderColor: t.text, borderWidth: 1 } } }],
+    series: [{ type: "heatmap", data: o.data as any, progressive: 4000, itemStyle: { borderColor: t.surface, borderWidth: o.cellLabel ? 2 : 0.5 },
+      label: o.cellLabel ? { show: true, color: t.text, textBorderColor: t.surface, textBorderWidth: 3, fontSize: 11, formatter: (p: any) => (p.value?.[2] == null ? "" : o.cellLabel!(p.value[2], p.value[0], p.value[1])) } : undefined,
+      emphasis: { itemStyle: { borderColor: t.text, borderWidth: 1 } } }],
   };
 }
 

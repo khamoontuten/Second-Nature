@@ -192,6 +192,7 @@ export function ReportPage() {
             <Callout level={reproduce.data.reproduced ? "good" : "warning"} title={reproduce.data.reproduced ? "Reproduced" : "Not identical"}>
               {reproduce.data.scenario_id}: inputs hash {reproduce.data.inputs_hash_stored.slice(0, 12)} → {reproduce.data.inputs_hash_now.slice(0, 12)}; model {reproduce.data.model_version_stored} → {reproduce.data.model_version_now};
               facility {fmt(reproduce.data.facility_mwh_stored, 3)} → {fmt(reproduce.data.facility_mwh_now, 3)} MWh; hourly series {reproduce.data.hourly_identical ? "identical" : "differ"}.
+              {reproduce.data.note ? ` Note: ${reproduce.data.note}.` : ""}
             </Callout>
           )}
         </div>

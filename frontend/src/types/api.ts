@@ -158,3 +158,104 @@ export interface Strategy {
   confidence: string;
   limitations: string;
 }
+
+// ---- strategy impact analysis (app.impacts) ----------------------------------------------------------------
+
+export type MetricStatus = "modelled" | "derived" | "estimated" | "insufficient_data" | "not_modelled" | "not_applicable" | "infeasible";
+
+export interface ImpactMetric {
+  key: string;
+  label: string;
+  group: "energy" | "water" | "carbon" | "cost" | "space" | "thermal";
+  unit: string;
+  lower_is_better: boolean | null;
+  baseline: number | null;
+  value: number | null;
+  delta: number | null;
+  delta_range?: [number, number];
+  range?: [number, number];
+  pct: number | null;
+  pct_range?: [number, number];
+  pct_note: string | null;
+  status: MetricStatus;
+  baseline_status: MetricStatus;
+  note: string;
+  direction: "decrease" | "increase" | "no change" | null;
+  assessment: "improvement" | "trade-off" | "neutral" | null;
+}
+
+export interface CapexLineDelta {
+  id: string; label: string; unit: string; quantity_baseline: number; quantity_scenario: number; delta_quantity: number;
+  delta_cost: { low: number; base: number; high: number } | null; owners: string[]; scope: string;
+}
+
+export interface SpaceCategory { base: number; low: number; high: number; status: string; basis?: string; items: { label: string; base: number; low: number; high: number; status: string; basis: string }[] }
+
+export interface ImpactEval {
+  id: string;
+  label: string;
+  requested: string[];
+  resolved: string[];
+  auto_added: string[];
+  parameters: Record<string, number>;
+  feasible: boolean;
+  simulated: boolean;
+  infeasible_reasons: string[];
+  warnings: string[];
+  metrics: ImpactMetric[];
+  summary?: Record<string, any>;
+  capex?: { lines: any[]; missing_rates: string[]; complete: boolean; total: { low: number; base: number; high: number } | null; currency: string; excluded: string[] };
+  capex_incremental?: { lines: CapexLineDelta[]; missing_rates: string[]; complete: boolean; delta: { low: number; base: number; high: number } | null; pct: number | null; pct_note?: string };
+  space?: { categories: Record<string, SpaceCategory>; checks: string[]; infeasible: string[]; note: string; gross_floor_area_m2: number; roof_area_m2: number; site_area_m2: number | null };
+  economics?: Record<string, any> | null;
+  opex?: Record<string, any>;
+}
+
+export interface PairResult {
+  a: string; b: string; feasible: boolean; simulated: boolean; infeasible_reasons: string[]; auto_added: string[];
+  metrics: Record<string, { value: number | null; delta: number | null; pct: number | null; status: MetricStatus }>;
+  interactions: Record<string, { interaction: number | null; sum_individual?: number; combined?: number; class: string; tolerance?: number }>;
+}
+
+export interface ImpactResult {
+  kind: "baseline" | "individual" | "combination" | "pairwise";
+  model_version: string;
+  baseline: ImpactEval;
+  individual: ImpactEval[];
+  combination?: ImpactEval;
+  attribution?: { rows: { key: string; label: string; unit: string; individual: Record<string, number | null>; sum_individual: number | null; combined: number | null; non_additive: number | null }[]; shared_dependencies: string[]; note: string };
+  pairs?: PairResult[];
+  requested: string[];
+  parameters: Record<string, number>;
+  applicability: Record<string, { applicable: boolean; reasons: string[]; warnings: string[] }>;
+  controller_note: string;
+  simulations_run: number;
+  period: { start_utc: string; end_utc: string; hours: number; years: number };
+  assumptions: Record<string, any>;
+  dataset?: { id: string; provider: string; product: string; data_nature: string; sha256: string };
+}
+
+export interface ImpactStudy {
+  id: string; project_id: string; dataset_id: string; kind: ImpactResult["kind"]; status: Job["status"]; job_id: string | null;
+  request: { kind: string; strategies: string[] | null; parameters: Record<string, number> };
+  config_hash: string; config_version_no: number; dataset_sha256: string; model_version: string; error: string | null; created_at: string;
+  result?: ImpactResult | null;
+}
+
+export interface CatalogueParam { path: string; label: string; unit: string; min: number; max: number; step: number; value: number | null }
+
+export interface CatalogueStrategy {
+  id: string; name: string; category: string; library_id: string | null; description: string; inspiration: string; mechanism: string;
+  physics_model: string; effects: Record<string, string>; construction: string; space: string; parameters: CatalogueParam[];
+  requires: string[]; exclusive_group: string | null; model_status: string; assumptions: string; uncertainty: string; validation: string;
+  control_system: string | null; library?: Record<string, any>;
+}
+
+export interface ImpactCatalogue {
+  strategies: CatalogueStrategy[];
+  applicability: ImpactResult["applicability"] | null;
+  controller_note: string;
+  metrics: { key: string; label: string; group: string; unit: string; lower_is_better: boolean | null }[];
+  statuses: MetricStatus[];
+  cost_lines: { id: string; label: string; scope: string; owners: string[] }[];
+}

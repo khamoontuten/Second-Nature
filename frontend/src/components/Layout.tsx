@@ -8,10 +8,11 @@ export const PAGES = [
   { path: "climate", label: "2 · Climate" },
   { path: "free-cooling", label: "3 · Free cooling" },
   { path: "strategies", label: "4 · Strategies" },
-  { path: "calculator", label: "5 · Calculator" },
-  { path: "compare", label: "6 · Comparison" },
-  { path: "optimize", label: "7 · Optimisation" },
-  { path: "report", label: "8 · Report" },
+  { path: "impacts", label: "5 · Impact analysis" },
+  { path: "calculator", label: "6 · Calculator" },
+  { path: "compare", label: "7 · Comparison" },
+  { path: "optimize", label: "8 · Optimisation" },
+  { path: "report", label: "9 · Report" },
 ];
 
 export function Layout({ children }: { children: ReactNode }) {
