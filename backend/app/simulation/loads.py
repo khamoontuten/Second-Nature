@@ -24,7 +24,7 @@ def utilisation_profile(it: ITLoadConfig, local_index) -> np.ndarray:
         return np.clip(prof[:n], 0.0, 1.0)
     mean = SCENARIO_UTILISATION.get(it.utilisation_scenario) or it.average_utilisation
     hours = np.asarray(local_index.hour, dtype=float)
-    dow = np.asarray(local_index.dayofweek)
+    dow = np.asarray(local_index.day_of_week)
     diurnal = it.diurnal_amplitude * np.sin(2 * np.pi * (hours - 9.0) / 24.0)   # peak ≈ 15:00 local
     weekly = it.weekly_amplitude * np.where(dow < 5, 0.4, -1.0)
     years = np.asarray(local_index.year) - int(local_index.year.min())

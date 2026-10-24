@@ -34,11 +34,12 @@ class Selection:
 
 
 def objective_matrix(cfg: ProjectConfig, modes: dict[str, ModeResult], intensity: np.ndarray, price_e: float | None,
-                     price_w: float | None) -> np.ndarray:
+                     price_w: float | None, water_ref_l: np.ndarray | None = None) -> np.ndarray:
     c = cfg.strategies.controller
     mech = modes["mechanical"]
     e0 = np.maximum(mech.cooling_power(), 1.0)
-    w0 = np.maximum(mech.water_total(), 1.0)
+    # water normaliser: mechanical-mode water or a reference of 0.5 L per kWh of IT energy, whichever is larger
+    w0 = np.maximum(mech.water_total(), 1.0 if water_ref_l is None else np.maximum(water_ref_l, 1.0))
     c0 = np.maximum(e0 * intensity, 1e-6)
     k0 = np.maximum(e0 / 1000 * (price_e or 0) + w0 / 1000 * (price_w or 0), 1e-9)
     rows = []
@@ -56,8 +57,8 @@ def objective_matrix(cfg: ProjectConfig, modes: dict[str, ModeResult], intensity
 
 
 def select_modes(cfg: ProjectConfig, modes: dict[str, ModeResult], intensity: np.ndarray, local_dates: np.ndarray,
-                 price_e: float | None = None, price_w: float | None = None) -> Selection:
-    j = objective_matrix(cfg, modes, intensity, price_e, price_w)
+                 price_e: float | None = None, price_w: float | None = None, water_ref_l: np.ndarray | None = None) -> Selection:
+    j = objective_matrix(cfg, modes, intensity, price_e, price_w, water_ref_l)
     n = j.shape[1]
     ctl = cfg.strategies.controller
     cons = cfg.site.constraints

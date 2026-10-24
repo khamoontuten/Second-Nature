@@ -342,7 +342,7 @@ def econ_eahe(cfg, ctx, hs, sz, eahe_res, eahe_flow_m3s):
     eff = cfg.baseline.crah_fan_efficiency
     x = np.ones(n)
     res = None
-    for _ in range(6):
+    for it in range(20):
         m_intake = np.maximum(x * hs.m_fac, 1e-9)
         m_e = np.minimum(m_e_avail, m_intake)
         share = m_e / m_intake
@@ -351,10 +351,10 @@ def econ_eahe(cfg, ctx, hs, sz, eahe_res, eahe_flow_m3s):
         res = _direct_economiser(cfg, ctx, hs, sz, name="econ_eahe", t_in_air=t_mix, w_in_air=w_mix, h_oa_ref=ctx.h,
                                  fan_mode="eahe", fan_full_override=fan)
         x_new = res.oa_fraction
-        if np.max(np.abs(x_new - x)) < 1e-4:
+        if np.max(np.abs(x_new - x)) < 1e-5:
             x = x_new
             break
-        x = 0.5 * (x + x_new)
+        x = x_new if it < 3 else 0.5 * (x + x_new)
     # Final evaluation with the converged intake composition; EAHE utilisation then follows from the
     # resulting outdoor-air fraction so the ground heat matches the EAHE air actually admitted.
     m_intake = np.maximum(x * hs.m_fac, 1e-9)

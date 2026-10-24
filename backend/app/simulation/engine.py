@@ -229,8 +229,9 @@ def run_simulation(cfg: ProjectConfig, ds: ClimateDataset, *, scenario: str = "c
     intensity, intensity_label = carbon_intensity(cfg, ctx, hourly_intensity)
     int_for_obj = np.nan_to_num(intensity, nan=0.4)
     local_dates = np.asarray(ctx.local_index.date)
+    water_ref = 0.5 * p_it / 1000.0  # L/h (0.5 L/kWh_IT)
     sel = controls.select_modes(cfg, modes, int_for_obj, local_dates, cfg.economics.electricity_price_per_kwh,
-                                cfg.economics.water_price_per_m3)
+                                cfg.economics.water_price_per_m3, water_ref)
     if avail["econ_eahe"] and eahe_res is not None:
         # Fixed point between controller and soil: re-run the EAHE with the flow the controller actually used.
         e = cfg.strategies.eahe
@@ -252,7 +253,7 @@ def run_simulation(cfg: ProjectConfig, ds: ClimateDataset, *, scenario: str = "c
             eahe_res = passive.run_eahe(cfg, ctx, ground, eahe_flow, cancel_cb=cancel_cb)
             modes["econ_eahe"] = hybrid.econ_eahe(cfg, ctx, hs, sz, eahe_res, eahe_flow)
             sel = controls.select_modes(cfg, modes, int_for_obj, local_dates, cfg.economics.electricity_price_per_kwh,
-                                        cfg.economics.water_price_per_m3)
+                                        cfg.economics.water_price_per_m3, water_ref)
         flags.append({"level": "info", "code": "eahe_fixed_point",
                       "message": f"EAHE controller/soil fixed point: relative flow change per iteration {history}"})
         if history and history[-1] >= 0.02:
