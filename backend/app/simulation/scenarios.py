@@ -76,7 +76,7 @@ def improved_patch(cfg: ProjectConfig) -> dict:
 
 
 # Candidate strategy additions for the greedy hybrid search (applied on top of scenario 1).
-def hybrid_candidates(cfg: ProjectConfig) -> dict[str, dict]:
+def hybrid_candidates(cfg: ProjectConfig, *, filter_water: bool = True) -> dict[str, dict]:
     arch = cfg.baseline.architecture
     cands = {
         "economiser_direct": {"strategies": {"economiser": {"enabled": True, "kind": "direct"}}},
@@ -94,7 +94,7 @@ def hybrid_candidates(cfg: ProjectConfig) -> dict[str, dict]:
     if arch in ("air_cooled_chiller_crah", "dx_crac", "dx_with_airside_economiser", "liquid_cooling_dry_cooler"):
         cands["evap_precool"] = {"strategies": {"evaporative": {"enabled": True, "kind": "precool_condenser"}}}
     cap = cfg.site.constraints.permitted_annual_withdrawal_m3
-    if cap is not None and cap <= 0:
+    if filter_water and cap is not None and cap <= 0:
         for k in ("iec", "evap_precool"):
             cands.pop(k, None)
     return cands
@@ -191,9 +191,11 @@ def run_scenarios(cfg: ProjectConfig, ds: ClimateDataset, *, include=None, weigh
             prog(step, f"{sid} {SCENARIO_META[sid][0]}")
             runs[sid] = sim(sid, derive(base_cfg, patch), strats)
 
+    first_step: dict[str, ScenarioRun] = {}
     if "S7" in include:
         prog(0.62, "S7 greedy hybrid search")
-        runs["S7"], search_log = greedy_hybrid(cfg, ds, s1_cfg, runs["S1"], s0, weights, hybrid_threshold, sim, cancel_cb)
+        runs["S7"], search_log = greedy_hybrid(cfg, ds, s1_cfg, runs["S1"], s0, weights, hybrid_threshold, sim, cancel_cb,
+                                               first_step=first_step)
     else:
         search_log = []
     if "S8" in include:
@@ -205,11 +207,16 @@ def run_scenarios(cfg: ProjectConfig, ds: ClimateDataset, *, include=None, weigh
         comparison[sid]["lifecycle"] = lifecycle(r.config, r.result.summary, s0 if sid != "S0" else None,
                                                  [s for s in r.strategies])
     prog(1.0, "done")
-    return {"runs": runs, "comparison": comparison, "weights": weights, "hybrid_search": search_log}
+    return {"runs": runs, "comparison": comparison, "weights": weights, "hybrid_search": search_log,
+            "candidate_runs": first_step, "s1_config": s1_cfg}
 
 
-def greedy_hybrid(cfg, ds, start_cfg, start_run, s0, weights, threshold, sim, cancel_cb):
-    """Forward selection: add the candidate with the largest objective gain while gain > threshold."""
+def greedy_hybrid(cfg, ds, start_cfg, start_run, s0, weights, threshold, sim, cancel_cb, first_step: dict | None = None):
+    """Forward selection: add the candidate with the largest objective gain while gain > threshold.
+
+    ``first_step`` (optional dict) receives every single-strategy run on top of the start design, which the
+    recommendation engine reuses instead of repeating those simulations.
+    """
     cands = hybrid_candidates(cfg)
     chosen: list[str] = []
     cur_cfg, cur_run = start_cfg, start_run
@@ -227,6 +234,8 @@ def greedy_hybrid(cfg, ds, start_cfg, start_run, s0, weights, threshold, sim, ca
                 tested.append({"strategy": name, "objective": None, "rejected": issues[0]["message"]})
                 continue
             run = sim("S7", trial_cfg, ["improved_conventional"] + chosen + [name])
+            if step == 1 and first_step is not None:
+                first_step[name] = run
             obj = objective(run.result.summary, s0, weights)
             tested.append({"strategy": name, "objective": obj, "gain": obj - cur_obj,
                            "facility_mwh": run.result.summary["energy_mwh"]["facility"],

@@ -20,7 +20,14 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from app.climate.providers.base import ClimateDataset, ClimateProvider, ClimateRequest, Provenance, haversine_km, now_iso
+from app.climate.providers.base import (
+    ClimateDataset,
+    ClimateProvider,
+    ClimateRequest,
+    Provenance,
+    haversine_km,
+    now_iso,
+)
 
 # (column index in EPW data row, canonical name, missing code)
 EPW_FIELDS = [

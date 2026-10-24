@@ -1,11 +1,16 @@
 from __future__ import annotations
 
 import os
+import tempfile
 from pathlib import Path
 
 import pytest
 
-os.environ.setdefault("SN_DATABASE_URL", "sqlite://")
+# Isolated database and data directory for the whole test session (never the repository's data/).
+_TMP = tempfile.mkdtemp(prefix="sn-test-")
+os.environ["SN_DATA_DIR"] = _TMP
+os.environ["SN_DATABASE_URL"] = f"sqlite:///{_TMP}/test.db"
+os.environ.setdefault("SN_RATE_LIMIT_PER_MINUTE", "1000")
 
 REPO = Path(__file__).resolve().parents[2]
 WEATHER = REPO / "data" / "reference" / "weather"
@@ -33,11 +38,11 @@ def datasets():
     return get
 
 
-def site_config(site: str, **overrides):
+def site_config(site_name: str, **overrides):
     from app.schemas.config import ProjectConfig
 
-    f, lat, lon, el, tz = SITES[site]
-    d = dict(site=dict(name=site, latitude=lat, longitude=lon, elevation_m=el, timezone=tz),
+    f, lat, lon, el, tz = SITES[site_name]
+    d = dict(site=dict(name=site_name, latitude=lat, longitude=lon, elevation_m=el, timezone=tz),
              grid=dict(emission_factor_kg_per_kwh=0.4, source="test assumption"))
     for k, v in overrides.items():
         if isinstance(v, dict) and isinstance(d.get(k), dict):

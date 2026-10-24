@@ -31,7 +31,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from app.core.constants import G, MU_AIR
+from app.core.constants import MU_AIR, G
 
 # ASHRAE Fundamentals 2017 Ch.24 Table 1: atmospheric boundary layer parameters.
 TERRAIN = {

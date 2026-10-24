@@ -17,7 +17,14 @@ import numpy as np
 import pandas as pd
 
 from app.climate.http import CachedClient
-from app.climate.providers.base import ClimateDataset, ClimateProvider, ClimateRequest, Provenance, haversine_km, now_iso
+from app.climate.providers.base import (
+    ClimateDataset,
+    ClimateProvider,
+    ClimateRequest,
+    Provenance,
+    haversine_km,
+    now_iso,
+)
 from app.core.errors import ProviderError
 
 URL = "https://archive-api.open-meteo.com/v1/archive"

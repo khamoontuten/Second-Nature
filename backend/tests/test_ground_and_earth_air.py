@@ -7,7 +7,14 @@ import pytest
 from app.core.errors import InsufficientData
 from app.physics import earth_air as ea
 from app.physics import psychrometrics as ps
-from app.physics.ground import OMEGA, GroundModel, damping_depth, diffusivity, fit_annual_harmonic, fit_diffusivity_from_layers
+from app.physics.ground import (
+    OMEGA,
+    GroundModel,
+    damping_depth,
+    diffusivity,
+    fit_annual_harmonic,
+    fit_diffusivity_from_layers,
+)
 
 IDX = pd.date_range("2001-01-01", periods=8760, freq="h", tz="UTC")
 
